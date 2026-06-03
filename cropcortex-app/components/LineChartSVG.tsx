@@ -44,23 +44,30 @@ export const LineChartSVG: React.FC<LineChartSVGProps> = ({
   const maxValue = Math.max(...values) * 1.1;
   const valueRange = maxValue - minValue || 1;
 
-  const getX = (index: number) => paddingLeft + (index / (data.length - 1)) * chartWidth;
+  const pointIntervalCount = Math.max(data.length - 1, 1);
+  const getX = (index: number) => paddingLeft + (index / pointIntervalCount) * chartWidth;
   const getY = (value: number) => paddingTop + chartHeight - ((value - minValue) / valueRange) * chartHeight;
 
   // Build path
   const points = data.map((d, i) => ({ x: getX(i), y: getY(d.value) }));
 
-  let pathD = `M ${points[0].x} ${points[0].y}`;
+  const firstPoint = points[0];
+
+  if (!firstPoint) return null;
+
+  let pathD = `M ${firstPoint.x} ${firstPoint.y}`;
   for (let i = 1; i < points.length; i++) {
     const prev = points[i - 1];
     const curr = points[i];
+    if (!prev || !curr) continue;
     const cpx1 = prev.x + (curr.x - prev.x) * 0.4;
     const cpx2 = curr.x - (curr.x - prev.x) * 0.4;
     pathD += ` C ${cpx1} ${prev.y} ${cpx2} ${curr.y} ${curr.x} ${curr.y}`;
   }
 
   // Fill path
-  const fillD = pathD + ` L ${points[points.length - 1].x} ${paddingTop + chartHeight} L ${points[0].x} ${paddingTop + chartHeight} Z`;
+  const lastPoint = points[points.length - 1] ?? firstPoint;
+  const fillD = pathD + ` L ${lastPoint.x} ${paddingTop + chartHeight} L ${firstPoint.x} ${paddingTop + chartHeight} Z`;
 
   // Y-axis labels
   const ySteps = 4;
@@ -120,21 +127,21 @@ export const LineChartSVG: React.FC<LineChartSVGProps> = ({
         {points.length > 0 && (
           <>
             <Circle
-              cx={points[points.length - 1].x}
-              cy={points[points.length - 1].y}
+              cx={lastPoint.x}
+              cy={lastPoint.y}
               r={7}
               fill={color}
               opacity={0.2}
             />
             <Circle
-              cx={points[points.length - 1].x}
-              cy={points[points.length - 1].y}
+              cx={lastPoint.x}
+              cy={lastPoint.y}
               r={5}
               fill={color}
             />
             <Circle
-              cx={points[points.length - 1].x}
-              cy={points[points.length - 1].y}
+              cx={lastPoint.x}
+              cy={lastPoint.y}
               r={2.5}
               fill="#fff"
             />

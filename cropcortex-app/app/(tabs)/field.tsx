@@ -10,11 +10,14 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ErrorBoundaryProps } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { colors } from '../../constants/colors';
 import { NDVIMapPlaceholder } from '../../components/NDVIMapPlaceholder';
 import { LineChartSVG } from '../../components/LineChartSVG';
 import { ChipSelector } from '../../components/ChipSelector';
+import { NetworkAwareOfflineBanner } from '../../components/NetworkAwareOfflineBanner';
+import { ScreenErrorBoundary } from '../../components/ScreenErrorBoundary';
 import { useAppStore } from '../../store/useAppStore';
 import { fieldData, fields as allFields } from '../../utils/mockData';
 import { cardShadow } from '../../utils/shadows';
@@ -39,6 +42,7 @@ export default function FieldScreen() {
 
   return (
     <View style={styles.screen}>
+      <NetworkAwareOfflineBanner />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -161,6 +165,10 @@ export default function FieldScreen() {
       </ScrollView>
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({

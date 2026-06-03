@@ -1,13 +1,26 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
-const app = new Hono()
+type Bindings = {
+  ENVIRONMENT: string
+  OPENAI_API_KEY?: string
+  WEATHER_API_KEY?: string
+  SATELLITE_API_KEY?: string
+}
+
+const app = new Hono<{ Bindings: Bindings }>()
 
 app.use('/api/*', cors())
 
 // API routes for CropCortex mobile app backend
 app.get('/api/health', (c) => {
-  return c.json({ status: 'ok', product: 'CropCortex', version: '1.0.0', tagline: 'Khet ki samajh, haath mein.' })
+  return c.json({
+    status: 'ok',
+    product: 'CropCortex',
+    version: '1.0.0',
+    tagline: 'Khet ki samajh, haath mein.',
+    environment: c.env.ENVIRONMENT,
+  })
 })
 
 app.get('/api/prices', (c) => {

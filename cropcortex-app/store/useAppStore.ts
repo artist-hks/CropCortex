@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Language = 'en' | 'hi' | 'te' | 'kn' | 'ta' | 'mr' | 'pa' | 'bn';
 
@@ -100,7 +102,9 @@ interface AppState {
   logout: () => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
   // Auth
   isAuthenticated: false,
   isGuest: false,
@@ -171,6 +175,12 @@ export const useAppStore = create<AppState>((set) => ({
       authToken: null,
       user: null,
     }),
-}));
+    }),
+    {
+      name: 'cropcortex-app-store',
+      storage: createJSONStorage(() => AsyncStorage),
+    },
+  ),
+);
 
 export default useAppStore;

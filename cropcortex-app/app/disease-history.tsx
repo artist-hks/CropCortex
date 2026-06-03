@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { ErrorBoundaryProps, useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { colors } from '../constants/colors';
+import { ScreenErrorBoundary } from '../components/ScreenErrorBoundary';
 import { diagnosisHistory } from '../utils/mockData';
 import { cardShadow } from '../utils/shadows';
 
@@ -23,7 +24,7 @@ export default function DiseaseHistoryScreen() {
   const router = useRouter();
 
   const renderItem = ({ item, index }: { item: typeof diagnosisHistory[0]; index: number }) => {
-    const severity = severityConfig[item.severity] || severityConfig.Moderate;
+    const severity = severityConfig[item.severity] ?? { color: colors.accent, bgColor: `${colors.accent}15` };
 
     return (
       <Animated.View entering={FadeInDown.delay(index * 60).duration(400)}>
@@ -108,6 +109,10 @@ export default function DiseaseHistoryScreen() {
       />
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({

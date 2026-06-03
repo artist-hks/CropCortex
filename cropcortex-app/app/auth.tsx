@@ -12,9 +12,10 @@ import {
 import Animated, { FadeIn, FadeInDown, useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { ErrorBoundaryProps, useRouter } from 'expo-router';
 import { colors } from '../constants/colors';
 import { PrimaryButton } from '../components/Buttons';
+import { ScreenErrorBoundary } from '../components/ScreenErrorBoundary';
 import { indianStates } from '../utils/mockData';
 import { useAppStore } from '../store/useAppStore';
 
@@ -250,6 +251,10 @@ export default function AuthScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({

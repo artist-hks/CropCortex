@@ -6,14 +6,20 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { ErrorBoundaryProps, useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { colors } from '../../constants/colors';
 import { ScanAnimation } from '../../components/ScanAnimation';
 import { DiseaseResult } from '../../components/DiseaseResult';
+import { NetworkAwareOfflineBanner } from '../../components/NetworkAwareOfflineBanner';
+import { ScreenErrorBoundary } from '../../components/ScreenErrorBoundary';
 import { useAppStore } from '../../store/useAppStore';
+import { endpoints } from '../../utils/api';
 import { diseases } from '../../utils/mockData';
 import { createColoredShadow } from '../../utils/shadows';
 
@@ -24,27 +30,104 @@ const VIEWFINDER_HEIGHT = 340;
 export default function DiagnoseScreen() {
   const [showResult, setShowResult] = useState(false);
   const [isScanning, setIsScanning] = useState(true);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const router = useRouter();
-  const { setShowDiagnosisResult } = useAppStore();
+  const { addDiagnosis, setShowDiagnosisResult } = useAppStore();
 
   const currentDisease = diseases['early-blight'];
 
-  const handleCapture = () => {
+  const getUploadErrorMessage = (error: unknown) => {
+    const message = error instanceof Error ? error.message : '';
+
+    if (message.includes('413')) {
+      return 'The image is still too large to upload. Please retake the photo from a little farther away or choose a smaller image.';
+    }
+
+    return 'We could not upload the photo. Check your connection and try again.';
+  };
+
+  const analyzeImage = async (imageUri: string) => {
+    setAnalysisError(null);
+    setSelectedImageUri(imageUri);
     setIsScanning(false);
-    setTimeout(() => {
+    setIsAnalyzing(true);
+
+    try {
+      await endpoints.diagnoseImage(imageUri);
+      addDiagnosis({
+        id: `diag-${Date.now()}`,
+        disease: currentDisease.name,
+        crop: currentDisease.crop,
+        date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        severity: currentDisease.severity,
+        confidence: currentDisease.confidence,
+      });
       setShowResult(true);
       setShowDiagnosisResult(true);
-    }, 300);
+    } catch (error) {
+      setAnalysisError(getUploadErrorMessage(error));
+      Alert.alert('Upload failed', getUploadErrorMessage(error));
+      setIsScanning(true);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleCapture = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert('Camera permission needed', 'Allow camera access to diagnose crop diseases from leaf photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.5,
+      base64: false,
+    });
+
+    if (result.canceled || !result.assets[0]) {
+      return;
+    }
+
+    await analyzeImage(result.assets[0].uri);
+  };
+
+  const handleGalleryPick = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert('Gallery permission needed', 'Allow photo library access to select a leaf image for diagnosis.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.5,
+      base64: false,
+    });
+
+    if (result.canceled || !result.assets[0]) {
+      return;
+    }
+
+    await analyzeImage(result.assets[0].uri);
   };
 
   const handleRetake = () => {
     setShowResult(false);
     setIsScanning(true);
+    setSelectedImageUri(null);
+    setAnalysisError(null);
     setShowDiagnosisResult(false);
   };
 
   return (
     <View style={styles.screen}>
+      <NetworkAwareOfflineBanner />
       {/* Header */}
       <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
         <Text style={styles.title}>Crop Doctor 🌿</Text>
@@ -74,25 +157,39 @@ export default function DiagnoseScreen() {
             <ScanAnimation
               width={VIEWFINDER_WIDTH}
               height={VIEWFINDER_HEIGHT}
-              isScanning={isScanning}
+              isScanning={isScanning || isAnalyzing}
             />
+
+            {isAnalyzing && (
+              <View style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" color={colors.card} />
+                <Text style={styles.loadingText}>Analyzing leaf photo...</Text>
+              </View>
+            )}
           </View>
 
           {/* Instruction text */}
-          <Text style={styles.instruction}>Point camera at an affected leaf or stem.</Text>
+          <Text style={[styles.instruction, analysisError ? styles.errorText : null]}>
+            {analysisError || 'Point camera at an affected leaf or stem.'}
+          </Text>
 
           {/* Camera controls */}
           <View style={styles.controls}>
             <TouchableOpacity
               style={styles.controlButton}
-              onPress={() => Alert.alert('Gallery', 'Gallery image selection is coming soon.')}
+              onPress={handleGalleryPick}
+              disabled={isAnalyzing}
             >
               <Ionicons name="images-outline" size={24} color={colors.textPrimary} />
               <Text style={styles.controlLabel}>Gallery</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.captureButton} onPress={handleCapture} activeOpacity={0.8}>
-              <View style={styles.captureInner} />
+            <TouchableOpacity style={styles.captureButton} onPress={handleCapture} activeOpacity={0.8} disabled={isAnalyzing}>
+              {isAnalyzing ? (
+                <ActivityIndicator color={colors.card} />
+              ) : (
+                <View style={styles.captureInner} />
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -110,9 +207,13 @@ export default function DiagnoseScreen() {
           {/* Captured thumbnail */}
           <Animated.View entering={FadeIn.duration(300)} style={styles.thumbnailContainer}>
             <View style={styles.thumbnail}>
-              <View style={styles.thumbnailLeaf}>
-                <Ionicons name="leaf" size={36} color={colors.primaryLight} />
-              </View>
+              {selectedImageUri ? (
+                <Image source={{ uri: selectedImageUri }} style={styles.thumbnailImage} />
+              ) : (
+                <View style={styles.thumbnailLeaf}>
+                  <Ionicons name="leaf" size={36} color={colors.primaryLight} />
+                </View>
+              )}
             </View>
             <TouchableOpacity onPress={handleRetake} style={styles.retakeButton}>
               <Ionicons name="camera-outline" size={16} color={colors.primary} />
@@ -129,6 +230,10 @@ export default function DiagnoseScreen() {
       )}
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({
@@ -176,6 +281,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(26,46,34,0.72)',
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 14,
+    fontFamily: 'NotoSans_600SemiBold',
+    color: colors.card,
+  },
   cropImage: {
     flex: 1,
     backgroundColor: 'rgba(82,183,136,0.12)',
@@ -221,6 +338,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 24,
+  },
+  errorText: {
+    color: colors.danger,
   },
   controls: {
     flexDirection: 'row',
@@ -278,6 +398,10 @@ const styles = StyleSheet.create({
   thumbnailLeaf: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
   },
   retakeButton: {
     flexDirection: 'row',

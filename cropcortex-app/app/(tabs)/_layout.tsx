@@ -1,7 +1,8 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { ErrorBoundaryProps, Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../constants/colors';
+import { ScreenErrorBoundary } from '../../components/ScreenErrorBoundary';
 
 const tabIcons = {
   index: 'home-outline',
@@ -41,4 +42,8 @@ export default function TabLayout() {
       <Tabs.Screen name="advisory" options={{ title: 'Advisory' }} />
     </Tabs>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }

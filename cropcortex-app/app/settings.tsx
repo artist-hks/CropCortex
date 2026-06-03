@@ -9,14 +9,16 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ErrorBoundaryProps } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { colors } from '../constants/colors';
-import { OfflineBanner } from '../components/OfflineBanner';
+import { NetworkAwareOfflineBanner } from '../components/NetworkAwareOfflineBanner';
+import { ScreenErrorBoundary } from '../components/ScreenErrorBoundary';
 import { useAppStore } from '../store/useAppStore';
 import { userData, languages } from '../utils/mockData';
 
 export default function SettingsScreen() {
-  const { isOnline, showOfflineBanner, lastSyncTimestamp, setOnline, logout, selectedLanguage } = useAppStore();
+  const { logout, selectedLanguage } = useAppStore();
   const [notifications, setNotifications] = useState({
     cropAlerts: true,
     priceAlerts: true,
@@ -32,9 +34,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.screen}>
-      {showOfflineBanner && (
-        <OfflineBanner lastSync={lastSyncTimestamp} onRetry={() => setOnline(true)} />
-      )}
+      <NetworkAwareOfflineBanner />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -221,6 +221,10 @@ export default function SettingsScreen() {
       </ScrollView>
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({

@@ -9,13 +9,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeIn, FadeInDown, FadeInRight } from 'react-native-reanimated';
+import { ErrorBoundaryProps, useRouter } from 'expo-router';
 import { colors } from '../../constants/colors';
 import { CropHealthRing } from '../../components/CropHealthRing';
 import { WeatherWidget } from '../../components/WeatherWidget';
-import { OfflineBanner } from '../../components/OfflineBanner';
-import { PrimaryButton } from '../../components/Buttons';
+import { NetworkAwareOfflineBanner } from '../../components/NetworkAwareOfflineBanner';
+import { ScreenErrorBoundary } from '../../components/ScreenErrorBoundary';
 import { useAppStore } from '../../store/useAppStore';
-import { useRouter } from 'expo-router';
 import { cardShadow, chipShadow } from '../../utils/shadows';
 import {
   userData,
@@ -29,7 +29,6 @@ import {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { isOnline, showOfflineBanner, lastSyncTimestamp, setOnline } = useAppStore();
   const [isAlertDismissed, setIsAlertDismissed] = useState(false);
 
   const currentDate = new Date().toLocaleDateString('en-IN', {
@@ -40,9 +39,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      {showOfflineBanner && (
-        <OfflineBanner lastSync={lastSyncTimestamp} onRetry={() => setOnline(true)} />
-      )}
+      <NetworkAwareOfflineBanner />
 
       <ScrollView
         style={styles.scrollView}
@@ -202,6 +199,10 @@ export default function HomeScreen() {
       </ScrollView>
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({

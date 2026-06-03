@@ -9,10 +9,13 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ErrorBoundaryProps } from 'expo-router';
 import Svg, { Rect, Text as SvgText, Line } from 'react-native-svg';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { colors } from '../constants/colors';
 import { PrimaryButton } from '../components/Buttons';
+import { NetworkAwareOfflineBanner } from '../components/NetworkAwareOfflineBanner';
+import { ScreenErrorBoundary } from '../components/ScreenErrorBoundary';
 import { yieldForecast } from '../utils/mockData';
 import { cardShadow } from '../utils/shadows';
 
@@ -39,6 +42,7 @@ export default function YieldForecastScreen() {
 
   return (
     <View style={styles.screen}>
+      <NetworkAwareOfflineBanner />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -174,6 +178,10 @@ export default function YieldForecastScreen() {
       </ScrollView>
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({

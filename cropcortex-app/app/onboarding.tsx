@@ -11,9 +11,10 @@ import {
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import Svg, { Circle, Path, Rect, Line } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { ErrorBoundaryProps, useRouter } from 'expo-router';
 import { colors } from '../constants/colors';
 import { PrimaryButton } from '../components/Buttons';
+import { ScreenErrorBoundary } from '../components/ScreenErrorBoundary';
 import { onboardingSlides, languages } from '../utils/mockData';
 import { useAppStore } from '../store/useAppStore';
 
@@ -130,7 +131,7 @@ export default function OnboardingScreen() {
   };
 
   const renderSlide = ({ item, index }: { item: typeof onboardingSlides[0]; index: number }) => {
-    const Visual = SlideVisuals[item.visual];
+    const Visual = SlideVisuals[item.visual] ?? FieldVisual;
     return (
       <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
         <Animated.View entering={FadeIn.delay(200).duration(500)} style={styles.visualContainer}>
@@ -221,6 +222,10 @@ export default function OnboardingScreen() {
       </Animated.View>
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({

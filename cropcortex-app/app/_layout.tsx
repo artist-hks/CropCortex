@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, LogBox, View } from 'react-native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { ErrorBoundaryProps, Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
   useFonts,
@@ -9,6 +9,7 @@ import {
   NotoSans_700Bold,
 } from '@expo-google-fonts/noto-sans';
 import { colors } from '../constants/colors';
+import { ScreenErrorBoundary } from '../components/ScreenErrorBoundary';
 import { useAppStore } from '../store/useAppStore';
 
 // Suppress known react-native-reanimated library-internal warnings
@@ -72,4 +73,8 @@ export default function RootLayout() {
       </Stack>
     </>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }

@@ -11,22 +11,37 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ErrorBoundaryProps } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { colors } from '../../constants/colors';
 import { PriceRow } from '../../components/PriceRow';
 import { ChipSelector } from '../../components/ChipSelector';
 import { LineChartSVG } from '../../components/LineChartSVG';
 import { BottomSheet } from '../../components/BottomSheet';
-import { PrimaryButton } from '../../components/Buttons';
+import { NetworkAwareOfflineBanner } from '../../components/NetworkAwareOfflineBanner';
+import { ScreenErrorBoundary } from '../../components/ScreenErrorBoundary';
 import { useAppStore } from '../../store/useAppStore';
 import { mandiPrices, priceHistory, nearbyMandis, priceCategories, userData } from '../../utils/mockData';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+type MandiPrice = (typeof mandiPrices)[number];
+
+const DEFAULT_MANDI_PRICE: MandiPrice = mandiPrices[0] ?? {
+  id: 'default',
+  crop: 'Tomato',
+  variety: 'Red',
+  emoji: '',
+  price: 0,
+  prevPrice: 0,
+  change: 0,
+  mandi: 'Nashik APMC',
+  category: 'Vegetables',
+};
 
 export default function MarketScreen() {
   const { selectedCategory, setSelectedCategory } = useAppStore();
   const [showDetail, setShowDetail] = useState(false);
-  const [selectedCrop, setSelectedCrop] = useState(mandiPrices[0]);
+  const [selectedCrop, setSelectedCrop] = useState<MandiPrice>(DEFAULT_MANDI_PRICE);
   const [targetPrice, setTargetPrice] = useState('');
 
   const filteredPrices = selectedCategory === 'All'
@@ -40,7 +55,7 @@ export default function MarketScreen() {
     value: p.price,
   }));
 
-  const handleCropPress = (crop: typeof mandiPrices[0]) => {
+  const handleCropPress = (crop: MandiPrice) => {
     setSelectedCrop(crop);
     setShowDetail(true);
   };
@@ -58,6 +73,7 @@ export default function MarketScreen() {
 
   return (
     <View style={styles.screen}>
+      <NetworkAwareOfflineBanner />
       {/* Header */}
       <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
         <Text style={styles.title}>Mandi Prices</Text>
@@ -169,6 +185,10 @@ export default function MarketScreen() {
       </BottomSheet>
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({

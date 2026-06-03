@@ -1,14 +1,19 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "webapp",
+  "name": "cropcortex-api",
   "compatibility_date": "2026-04-13",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
     "nodejs_compat"
-  ]
-  // "vars": {
-  //   "MY_VAR": "my-variable"
-  // },
+  ],
+  "vars": {
+    "ENVIRONMENT": "development"
+  }
+  // Secrets (API keys) must be set via:
+  // npx wrangler secret put OPENAI_API_KEY
+  // npx wrangler secret put WEATHER_API_KEY
+  // npx wrangler secret put SATELLITE_API_KEY
+  // Never hardcode secrets here or in source code.
   // "kv_namespaces": [
   //   {
   //     "binding": "MY_KV_NAMESPACE",

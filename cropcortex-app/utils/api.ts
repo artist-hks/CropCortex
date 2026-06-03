@@ -1,4 +1,16 @@
-const BASE_URL = 'https://api.cropcortex.in/v1';
+import Constants from 'expo-constants';
+
+type ExpoExtra = {
+  apiUrl?: string;
+};
+
+export const API_BASE_URL =
+  (Constants.expoConfig?.extra as ExpoExtra | undefined)?.apiUrl ?? 'http://localhost:5173';
+
+const normalizePath = (path: string) => (path.startsWith('/') ? path : `/${path}`);
+
+export const apiFetch = (path: string, options?: RequestInit) =>
+  fetch(`${API_BASE_URL}${normalizePath(path)}`, options);
 
 type RequestConfig = Omit<RequestInit, 'body' | 'method'>;
 
@@ -19,7 +31,7 @@ class ApiClient {
     const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
 
     try {
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
+      const response = await apiFetch(endpoint, {
         ...init,
         signal: controller.signal,
         headers: {
@@ -30,10 +42,14 @@ class ApiClient {
       });
 
       const text = await response.text();
-      const data = text ? JSON.parse(text) : null;
+      const data: unknown = text ? JSON.parse(text) : null;
 
       if (!response.ok) {
-        throw new Error(data?.message || `Request failed with status ${response.status}`);
+        const message =
+          typeof data === 'object' && data !== null && 'message' in data
+            ? String(data.message)
+            : `Request failed with status ${response.status}`;
+        throw new Error(message);
       }
 
       this.isOnline = true;
@@ -90,7 +106,7 @@ export const endpoints = {
   diagnoseImage: (imageUri: string) => {
     const formData = new FormData();
     formData.append('image', { uri: imageUri, type: 'image/jpeg', name: 'leaf.jpg' } as unknown as Blob);
-    return api.post('/diagnose', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return api.post('/diagnose', formData);
   },
 
   // Market

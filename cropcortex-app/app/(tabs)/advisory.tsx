@@ -7,9 +7,12 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ErrorBoundaryProps } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { colors } from '../../constants/colors';
 import { TaskCard } from '../../components/TaskCard';
+import { NetworkAwareOfflineBanner } from '../../components/NetworkAwareOfflineBanner';
+import { ScreenErrorBoundary } from '../../components/ScreenErrorBoundary';
 import { useAppStore } from '../../store/useAppStore';
 import { advisoryTasks, aiAdvisorySummary } from '../../utils/mockData';
 import { cardShadow } from '../../utils/shadows';
@@ -111,6 +114,7 @@ export default function AdvisoryScreen() {
 
   return (
     <View style={styles.screen}>
+      <NetworkAwareOfflineBanner />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -182,6 +186,10 @@ export default function AdvisoryScreen() {
       </ScrollView>
     </View>
   );
+}
+
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  return <ScreenErrorBoundary {...props} />;
 }
 
 const styles = StyleSheet.create({
