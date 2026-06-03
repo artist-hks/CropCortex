@@ -15,6 +15,7 @@ import { useAppStore } from '../store/useAppStore';
 LogBox.ignoreLogs([
   'createAnimatedComponent',
   '[Reanimated] Property',
+  'props.pointerEvents',
 ]);
 
 export default function RootLayout() {

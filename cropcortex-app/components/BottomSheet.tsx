@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
-  TouchableWithoutFeedback,
+  Pressable,
   ScrollView,
   Dimensions,
 } from 'react-native';
@@ -33,9 +33,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={onClose}>
+        <Pressable onPress={onClose} style={StyleSheet.absoluteFill}>
           <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.backdrop} />
-        </TouchableWithoutFeedback>
+        </Pressable>
 
         <Animated.View
           entering={SlideInDown.duration(400).springify()}
