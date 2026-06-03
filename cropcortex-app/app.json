@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "CropCortex",
+    "slug": "cropcortex",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.cropcortex.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "CropCortex needs camera access to diagnose crop diseases from leaf photos.",
+        "NSLocationWhenInUseUsageDescription": "CropCortex needs your location to show local mandi prices and weather data.",
+        "NSPhotoLibraryUsageDescription": "CropCortex needs photo library access to select leaf images for disease diagnosis."
+      }
+    },
+    "android": {
+      "package": "com.cropcortex.app",
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {},
+    "plugins": [
+      "expo-camera",
+      "expo-location",
+      "expo-document-picker",
+      "expo-file-system",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/@expo-google-fonts/noto-sans/NotoSans_400Regular.ttf",
+            "node_modules/@expo-google-fonts/noto-sans/NotoSans_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/noto-sans/NotoSans_700Bold.ttf"
+          ]
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cropcortex-app-id"
+      }
+    },
+    "scheme": "cropcortex"
+  }
+}
